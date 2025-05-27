@@ -67,12 +67,22 @@ def main():
     seen_sentences = set()
     lock = threading.Lock()
 
-    def mostly_alnum(text: str, threshold: float = 0.4) -> bool:
+    def mostly_alnum(text: str, threshold: float = 0.3) -> bool:
         """True なら “英数字率 ≥ threshold”"""
         if not text:
             return False
         alnum_cnt = sum(ch in string.ascii_letters + string.digits for ch in text)
         return alnum_cnt / len(text) >= threshold
+    
+    def remove_loading_number_and_dot(text):
+        pattern = r"^\d{1,2}\.\s*"
+        text = re.sub(pattern, "", text)
+        pattern = r"^เรื่อง\s*"
+        return re.sub(pattern, "", text)
+
+    def contains_long_numeric_pattern(text:str,min_length:int=6) -> bool:
+        pattern = rf"[0-9./-]{{{min_length},}}"
+        return re.search(pattern, text)
 
     pbar = tqdm(total=args.num_lines, desc="書き込み行数", unit="line")
     with open(args.output_file, "w", encoding="utf-8") as out_f, \
@@ -119,9 +129,14 @@ def main():
                         if mostly_alnum(s) or len(s) <30:
                             continue
                         if written >= args.num_lines:
-                            break
+                            break   
+                        if "อาทิ" in s or "อัตรา" in s or "อัตราการ" in s:
+                            continue
                         if s in seen_sentences:
                             continue
+                        if contains_long_numeric_pattern(s):
+                            continue
+                        s = remove_loading_number_and_dot(s)
                         out_f.write(s + "\n")
                         seen_sentences.add(s)
                         written += 1
