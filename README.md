@@ -47,7 +47,7 @@ python src/main.py --output_file thai_text_processed.txt --num_lines 10000
 
 ## ライセンス
 
-MIT License
+このプロジェクトは [MIT License](LICENSE) の下で公開されています。
 
 Copyright (c) 2024 Tellterubouzu
 
